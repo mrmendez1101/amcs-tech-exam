@@ -284,7 +284,7 @@ What is implemented:
 - [x] Phase 1: Validation, ProblemDetails errors, pagination, indexes.
 - [x] Phase 1: Unit tests + integration tests via Testcontainers.
 - [x] Phase 1: Dockerised API + Postgres + Adminer via `docker compose`.
-- [ ] Phase 2 bonus: LRU cache with hit/miss metrics. Not yet implemented.
+- [ ] Phase 2 bonus: LRU (Lease Recently Used) accounts cache. $\color{red}{\textbf{Not yet implemented.}}$ 
 
 ---
 
