@@ -1,0 +1,10 @@
+﻿
+.vs
+/bin
+/obj
+*/bin
+*/obj
+src/*/bin
+src/*/obj
+tests/*/obj
+tests/*/bin
