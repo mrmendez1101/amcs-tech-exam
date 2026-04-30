@@ -6,13 +6,15 @@ Both assume the schema from the `0001`-`0005` migrations is already in place.
 
 ## Table of contents
 
-1. [Where these files live](#where-these-files-live)
-2. [Running the scripts](#running-the-scripts)
-3. [Small demo seed](#small-demo-seed)
-4. [Bulk seed for scale testing](#bulk-seed-for-scale-testing)
-5. [Verification queries](#verification-queries)
-6. [Resetting between runs](#resetting-between-runs)
-7. [Why SQL scripts and not a C# seeder](#why-sql-scripts-and-not-a-c-seeder)
+- [Seed Data](#seed-data)
+  - [Table of contents](#table-of-contents)
+  - [Where these files live](#where-these-files-live)
+  - [Running the scripts](#running-the-scripts)
+  - [Small demo seed](#small-demo-seed)
+  - [Bulk seed for scale testing](#bulk-seed-for-scale-testing)
+  - [Verification queries](#verification-queries)
+  - [Resetting between runs](#resetting-between-runs)
+  - [Why SQL scripts and not a C# seeder](#why-sql-scripts-and-not-a-c-seeder)
 
 ## Where these files live
 
@@ -286,9 +288,10 @@ docker compose up --build
 
 ## Why SQL scripts and not a C# seeder
 
-You could write a `Seeder.cs` class run from `Program.cs` behind a config flag. For an exam:
+Can write a `Seeder.cs` class run from `Program.cs` behind a config flag. (*Options)
 
-* SQL scripts are reviewable as data, not as code that produces data. Graders see exactly what is in the DB.
+For an exam:
+* SQL scripts are reviewable as data, not as code that produces data. Can check exactly what is in the DB.
 * `generate_series` runs entirely server-side; it is faster than 100K round trips from a C# loop, and faster than batched inserts.
 * It separates the bonus (working API) from the demo (running it with realistic data). The API does not need to know the seed exists.
 * If you do want a programmatic seeder later (e.g., for integration tests), wire one in `tests/`. Keep it out of the production startup path.
