@@ -8,6 +8,7 @@ using Job.Marketplace.API.Features.Jobs.Delete;
 using Job.Marketplace.API.Features.Jobs.GetById;
 using Job.Marketplace.API.Features.Jobs.Update;
 using Job.Marketplace.Infrastructure;
+using Job.Marketplace.Infrastructure.Caching;
 using Job.Marketplace.Infrastructure.Migrations;
 using Serilog;
 
@@ -23,7 +24,19 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 builder.Services.AddScoped<ISearchCustomersQueries, SearchCustomersQueries>();
 builder.Services.AddScoped<SearchCustomersHandler>();
-builder.Services.AddScoped<IGetCustomerByIdQueries, GetCustomerByIdQueries>();
+builder.Services.AddScoped<GetCustomerByIdQueries>();
+
+// Cache Injection
+builder.Services.AddSingleton(sp =>
+    new LruCache<Guid, CustomerDetail>(
+        sp.GetRequiredService<IConfiguration>().GetValue<int>("Cache:CustomerCapacity", 10_000)));
+builder.Services.AddSingleton<CacheMetrics>();
+builder.Services.AddScoped<IGetCustomerByIdQueries>(sp =>
+    new CachedCustomerByIdLookup(
+        sp.GetRequiredService<GetCustomerByIdQueries>(),
+        sp.GetRequiredService<LruCache<Guid, CustomerDetail>>(),
+        sp.GetRequiredService<CacheMetrics>()));
+
 builder.Services.AddScoped<GetCustomerByIdHandler>();
 builder.Services.AddScoped<ISearchContractorsQueries, SearchContractorsQueries>();
 builder.Services.AddScoped<SearchContractorsHandler>();
@@ -65,6 +78,9 @@ UpdateJobEndpoint.Map(app);
 DeleteJobEndpoint.Map(app);
 CreateJobOfferEndpoint.Map(app);
 AcceptJobOfferEndpoint.Map(app);
+
+app.MapGet("/internal/cache-metrics", (CacheMetrics m) =>
+    Results.Ok(new { m.Hits, m.Misses, m.HitRatio }));
 
 app.Run();
 

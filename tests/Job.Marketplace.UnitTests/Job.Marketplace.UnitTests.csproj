@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Job.Marketplace.API\Job.Marketplace.API.csproj" />
     <ProjectReference Include="..\..\src\Job.Marketplace.Domain\Job.Marketplace.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Job.Marketplace.Infrastructure\Job.Marketplace.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
