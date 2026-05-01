@@ -4,11 +4,8 @@ public sealed class CreateJobOfferHandler(ICreateJobOfferQueries queries)
 {
     public async Task<CreateJobOfferResponse> HandleAsync(CreateJobOfferCommand cmd, CancellationToken ct)
     {
-        var status = await queries.GetJobStatusAsync(cmd.JobId, ct);
-        if (status is null)
+        if (!await queries.JobExistsAsync(cmd.JobId, ct))
             throw new KeyNotFoundException($"Job '{cmd.JobId}' not found.");
-        if (status != "Open")
-            throw new InvalidOperationException("Offers can only be submitted for open jobs.");
 
         if (!await queries.ContractorExistsAsync(cmd.ContractorId, ct))
             throw new KeyNotFoundException($"Contractor '{cmd.ContractorId}' not found.");

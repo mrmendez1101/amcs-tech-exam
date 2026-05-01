@@ -6,6 +6,5 @@ CREATE TABLE jobs (
     budget              numeric(18,2) NOT NULL,
     description         varchar(500) NOT NULL,
     accepted_offer_id   uuid,
-    status              varchar(20) NOT NULL DEFAULT 'Open',
     created_at          timestamptz NOT NULL DEFAULT now()
 );

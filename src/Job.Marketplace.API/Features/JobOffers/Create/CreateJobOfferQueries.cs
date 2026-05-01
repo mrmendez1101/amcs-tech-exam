@@ -2,18 +2,20 @@ namespace Job.Marketplace.API.Features.JobOffers.Create;
 
 public interface ICreateJobOfferQueries
 {
-    Task<string?> GetJobStatusAsync(Guid jobId, CancellationToken ct);
+    Task<bool> JobExistsAsync(Guid jobId, CancellationToken ct);
     Task<bool> ContractorExistsAsync(Guid contractorId, CancellationToken ct);
     Task<Guid> InsertOfferAsync(JobOffer offer, CancellationToken ct);
 }
 
 public sealed class CreateJobOfferQueries(IDbConnectionFactory factory) : ICreateJobOfferQueries
 {
-    public async Task<string?> GetJobStatusAsync(Guid jobId, CancellationToken ct)
+    public async Task<bool> JobExistsAsync(Guid jobId, CancellationToken ct)
     {
         await using var conn = await factory.CreateAsync(ct);
-        return await conn.ExecuteScalarAsync<string?>(
-            new CommandDefinition("SELECT status FROM jobs WHERE id = @jobId", new { jobId }, cancellationToken: ct));
+        return await conn.ExecuteScalarAsync<bool>(
+            new CommandDefinition(
+                "SELECT EXISTS(SELECT 1 FROM jobs WHERE id = @jobId)",
+                new { jobId }, cancellationToken: ct));
     }
 
     public async Task<bool> ContractorExistsAsync(Guid contractorId, CancellationToken ct)

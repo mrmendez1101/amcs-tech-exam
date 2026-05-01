@@ -2,17 +2,19 @@ namespace Job.Marketplace.API.Features.Jobs.Update;
 
 public interface IUpdateJobQueries
 {
-    Task<string?> GetJobStatusAsync(Guid id, CancellationToken ct);
+    Task<bool> JobExistsAsync(Guid id, CancellationToken ct);
     Task UpdateAsync(UpdateJobCommand cmd, CancellationToken ct);
 }
 
 public sealed class UpdateJobQueries(IDbConnectionFactory factory) : IUpdateJobQueries
 {
-    public async Task<string?> GetJobStatusAsync(Guid id, CancellationToken ct)
+    public async Task<bool> JobExistsAsync(Guid id, CancellationToken ct)
     {
         await using var conn = await factory.CreateAsync(ct);
-        return await conn.ExecuteScalarAsync<string?>(
-            new CommandDefinition("SELECT status FROM jobs WHERE id = @id", new { id }, cancellationToken: ct));
+        return await conn.ExecuteScalarAsync<bool>(
+            new CommandDefinition(
+                "SELECT EXISTS(SELECT 1 FROM jobs WHERE id = @id)",
+                new { id }, cancellationToken: ct));
     }
 
     public async Task UpdateAsync(UpdateJobCommand cmd, CancellationToken ct)

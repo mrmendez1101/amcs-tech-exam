@@ -118,19 +118,6 @@ public class JobsEndpointTests : IAsyncLifetime
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
-    [Fact]
-    public async Task DeleteJob_returns_409_when_job_is_awarded()
-    {
-        var customerId = await SeedCustomerAsync("Bob", "Smith");
-        var contractorId = await SeedContractorAsync("Acme Ltd");
-        var jobId = await CreateJobViaApiAsync(customerId);
-        var offerId = await CreateOfferViaApiAsync(jobId, contractorId);
-        await _client.PostAsync($"/jobs/{jobId}/offers/{offerId}/accept", null);
-
-        var response = await _client.DeleteAsync($"/jobs/{jobId}");
-        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
-    }
-
     private async Task<Guid> SeedCustomerAsync(string firstName, string lastName)
     {
         var id = Guid.NewGuid();

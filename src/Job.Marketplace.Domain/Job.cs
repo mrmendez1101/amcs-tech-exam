@@ -9,7 +9,6 @@ public sealed class Job
     public decimal Budget { get; private set; }
     public string Description { get; private set; } = default!;
     public Guid? AcceptedOfferId { get; private set; }
-    public JobStatus Status { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
 
     private Job() { }
@@ -29,27 +28,7 @@ public sealed class Job
             DueDate = dueDate,
             Budget = budget,
             Description = description.Trim(),
-            Status = JobStatus.Open,
             CreatedAt = DateTimeOffset.UtcNow
         };
-    }
-
-    // Reconstitutes a minimal snapshot for write-path business rule enforcement.
-    public static Job Reconstitute(Guid id, string status)
-        => new() { Id = id, Status = Enum.Parse<JobStatus>(status) };
-
-    public void AcceptOffer(Guid offerId)
-    {
-        if (Status != JobStatus.Open)
-            throw new InvalidOperationException("Only open jobs can accept offers.");
-        AcceptedOfferId = offerId;
-        Status = JobStatus.Awarded;
-    }
-
-    public void Cancel()
-    {
-        if (Status == JobStatus.Awarded)
-            throw new InvalidOperationException("Awarded jobs cannot be cancelled.");
-        Status = JobStatus.Cancelled;
     }
 }

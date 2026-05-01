@@ -173,7 +173,7 @@ Adjust the column names to match your actual schema. The script assumes:
 
 * `customers (id uuid, first_name text, last_name text)`
 * `contractors (id uuid, name text, rating numeric)`
-* `jobs (id uuid, customer_id uuid, start_date date, due_date date, budget numeric, description text, status text)`
+* `jobs (id uuid, customer_id uuid, start_date date, due_date date, budget numeric, description text)`
 * `job_offers (id uuid, job_id uuid, contractor_id uuid, price numeric, created_at timestamptz)`
 
 If your migrations name columns differently (e.g., `business_name` instead of `name`), update the script. Don't update the migrations to fit the seed.
@@ -296,4 +296,4 @@ For an exam:
 * It separates the bonus (working API) from the demo (running it with realistic data). The API does not need to know the seed exists.
 * If you do want a programmatic seeder later (e.g., for integration tests), wire one in `tests/`. Keep it out of the production startup path.
 
-The one case where a C# seeder is better: when seed data needs to invoke domain logic (e.g., `Job.AcceptOffer()` to set up an awarded job). For that, write a small console project under `tools/Seeder/` that calls into the domain assembly. Keep production startup clean.
+The one case where a C# seeder is better: when seed data needs to invoke domain logic (e.g., accepting an offer to set up a job with an accepted offer). For that, write a small console project under `tools/Seeder/` that calls into the domain assembly. Keep production startup clean.

@@ -11,7 +11,6 @@ CREATE INDEX contractors_name_trgm ON contractors USING gin (lower(name) gin_trg
 
 -- Jobs
 CREATE INDEX jobs_customer_id_idx ON jobs (customer_id);
-CREATE INDEX jobs_status_idx ON jobs (status);
 
 -- Job offers
 CREATE INDEX job_offers_job_id_idx ON job_offers (job_id);

@@ -9,7 +9,7 @@ public sealed class GetJobByIdQueries(IDbConnectionFactory factory) : IGetJobByI
 {
     private const string Sql = """
         SELECT id, customer_id, start_date, due_date, budget, description,
-               accepted_offer_id, status, created_at
+               accepted_offer_id, created_at
         FROM jobs WHERE id = @id
         """;
 

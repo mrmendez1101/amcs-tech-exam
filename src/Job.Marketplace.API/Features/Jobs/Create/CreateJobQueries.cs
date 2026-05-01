@@ -22,8 +22,8 @@ public sealed class CreateJobQueries(IDbConnectionFactory factory) : ICreateJobQ
     public async Task<Guid> InsertJobAsync(DomainJob job, CancellationToken ct)
     {
         const string sql = """
-            INSERT INTO jobs (id, customer_id, start_date, due_date, budget, description, status, created_at)
-            VALUES (@Id, @CustomerId, @StartDate, @DueDate, @Budget, @Description, @Status, @CreatedAt)
+            INSERT INTO jobs (id, customer_id, start_date, due_date, budget, description, created_at)
+            VALUES (@Id, @CustomerId, @StartDate, @DueDate, @Budget, @Description, @CreatedAt)
             RETURNING id
             """;
         await using var conn = await factory.CreateAsync(ct);
@@ -36,7 +36,6 @@ public sealed class CreateJobQueries(IDbConnectionFactory factory) : ICreateJobQ
                 job.DueDate,
                 job.Budget,
                 job.Description,
-                Status = job.Status.ToString(),
                 job.CreatedAt
             }, cancellationToken: ct));
     }

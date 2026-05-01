@@ -1,0 +1,2 @@
+DROP INDEX IF EXISTS jobs_status_idx;
+ALTER TABLE jobs DROP COLUMN IF EXISTS status;

@@ -8,5 +8,4 @@ public sealed record JobDetail(
     decimal Budget,
     string Description,
     Guid? AcceptedOfferId,
-    string Status,
     DateTimeOffset CreatedAt);

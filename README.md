@@ -121,6 +121,9 @@ curl "http://localhost:8080/contractors/<contractor-id>"
 ### Jobs
 
 ```bash
+# Search by description or exact id (paginated)
+curl "http://localhost:8080/jobs?term=fence&page=1&pageSize=20"
+
 # Create
 curl -X POST http://localhost:8080/jobs \
   -H "Content-Type: application/json" \
@@ -147,13 +150,24 @@ curl -X DELETE "http://localhost:8080/jobs/<job-id>"
 ### Job offers
 
 ```bash
-# Contractor submits an offer on an open job
+# Contractor submits an offer on a job
 curl -X POST "http://localhost:8080/jobs/<job-id>/offers" \
   -H "Content-Type: application/json" \
   -d '{ "contractorId": "<contractor-id>", "price": 1700.00 }'
 
+# List all offers for a job
+curl "http://localhost:8080/jobs/<job-id>/offers"
+
 # Customer accepts an offer
 curl -X POST "http://localhost:8080/jobs/<job-id>/offers/<offer-id>/accept"
+
+# Update an offer price
+curl -X PUT "http://localhost:8080/jobs/<job-id>/offers/<offer-id>" \
+  -H "Content-Type: application/json" \
+  -d '{ "price": 1600.00 }'
+
+# Withdraw an offer
+curl -X DELETE "http://localhost:8080/jobs/<job-id>/offers/<offer-id>"
 ```
 
 ---
@@ -231,7 +245,7 @@ src/
       Jobs/
         Create/  GetById/  Update/  Delete/
       JobOffers/
-        Create/  Accept/
+        Create/  GetByJobId/  Accept/  Delete/
 
 tests/
   Job.Marketplace.UnitTests/           # handler + validator unit tests (NSubstitute mocks)
@@ -276,6 +290,38 @@ Infrastructure services are registered via a single extension method - `builder.
 
 ---
 
+## LRU cache (Phase 2)
+
+Customer-by-id lookups are wrapped in an in-process LRU cache (Dictionary + doubly linked list, O(1) get and set, thread-safe via a single lock).
+
+**Capacity** is configured in `appsettings.json`:
+
+```json
+{
+  "Cache": {
+    "CustomerCapacity": 10000
+  }
+}
+```
+
+Override per environment in `docker-compose.yml`:
+
+```yaml
+environment:
+  Cache__CustomerCapacity: "50000"
+```
+
+**Metrics** endpoint (available in all environments):
+
+```bash
+curl http://localhost:8080/internal/cache-metrics
+# {"hits":142,"misses":38,"hitRatio":0.789}
+```
+
+The decorator (`CachedCustomerByIdLookup`) wraps `IGetCustomerByIdQueries`. Removing the cache is a one-line DI change in `Program.cs` - the rest of the code is unaffected.
+
+---
+
 ## Roadmap
 
 What is implemented:
@@ -284,7 +330,7 @@ What is implemented:
 - [x] Phase 1: Validation, ProblemDetails errors, pagination, indexes.
 - [x] Phase 1: Unit tests + integration tests via Testcontainers.
 - [x] Phase 1: Dockerised API + Postgres + Adminer via `docker compose`.
-- [ ] Phase 2 bonus: LRU (Lease Recently Used) accounts cache. $\color{red}{\textbf{Not yet implemented.}}$ 
+- [x] Phase 2 bonus: LRU cache for customer lookups with hit/miss metrics.
 
 ---
 

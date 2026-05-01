@@ -46,7 +46,7 @@ WITH chosen_customers AS (
 numbered AS (
     SELECT id, ROW_NUMBER() OVER () AS rn FROM chosen_customers
 )
-INSERT INTO jobs (id, customer_id, start_date, due_date, budget, description, status)
+INSERT INTO jobs (id, customer_id, start_date, due_date, budget, description)
 SELECT
     gen_random_uuid(),
     n.id,
@@ -64,8 +64,7 @@ SELECT
         'Tile small bathroom floor',
         'Rewire garage lighting',
         'Pressure wash driveway'
-    ])[1 + (n.rn % 10)],
-    'Open'
+    ])[1 + (n.rn % 10)]
 FROM numbered n;
 
 -- Job offers -------------------------------------------------------------
