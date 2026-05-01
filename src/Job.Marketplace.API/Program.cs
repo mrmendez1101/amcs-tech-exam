@@ -5,9 +5,11 @@ using Job.Marketplace.API.Features.JobOffers.Accept;
 using Job.Marketplace.API.Features.JobOffers.Create;
 using Job.Marketplace.API.Features.JobOffers.Delete;
 using Job.Marketplace.API.Features.JobOffers.GetByJobId;
+using Job.Marketplace.API.Features.JobOffers.Update;
 using Job.Marketplace.API.Features.Jobs.Create;
 using Job.Marketplace.API.Features.Jobs.Delete;
 using Job.Marketplace.API.Features.Jobs.GetById;
+using Job.Marketplace.API.Features.Jobs.Search;
 using Job.Marketplace.API.Features.Jobs.Update;
 using Job.Marketplace.Infrastructure;
 using Job.Marketplace.Infrastructure.Caching;
@@ -42,6 +44,8 @@ builder.Services.AddScoped<IGetCustomerByIdQueries>(sp =>
 builder.Services.AddScoped<GetCustomerByIdHandler>();
 builder.Services.AddScoped<ISearchContractorsQueries, SearchContractorsQueries>();
 builder.Services.AddScoped<SearchContractorsHandler>();
+builder.Services.AddScoped<ISearchJobsQueries, SearchJobsQueries>();
+builder.Services.AddScoped<SearchJobsHandler>();
 builder.Services.AddScoped<ICreateJobQueries, CreateJobQueries>();
 builder.Services.AddScoped<CreateJobHandler>();
 builder.Services.AddScoped<IGetJobByIdQueries, GetJobByIdQueries>();
@@ -58,6 +62,8 @@ builder.Services.AddScoped<IAcceptJobOfferQueries, AcceptJobOfferQueries>();
 builder.Services.AddScoped<AcceptJobOfferHandler>();
 builder.Services.AddScoped<IDeleteJobOfferQueries, DeleteJobOfferQueries>();
 builder.Services.AddScoped<DeleteJobOfferHandler>();
+builder.Services.AddScoped<IUpdateJobOfferQueries, UpdateJobOfferQueries>();
+builder.Services.AddScoped<UpdateJobOfferHandler>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -78,6 +84,7 @@ app.UseStatusCodePages();
 SearchCustomersEndpoint.Map(app);
 GetCustomerByIdEndpoint.Map(app);
 SearchContractorsEndpoint.Map(app);
+SearchJobsEndpoint.Map(app);
 CreateJobEndpoint.Map(app);
 GetJobByIdEndpoint.Map(app);
 UpdateJobEndpoint.Map(app);
@@ -86,6 +93,7 @@ CreateJobOfferEndpoint.Map(app);
 GetJobOffersByJobIdEndpoint.Map(app);
 AcceptJobOfferEndpoint.Map(app);
 DeleteJobOfferEndpoint.Map(app);
+UpdateJobOfferEndpoint.Map(app);
 
 app.MapGet("/internal/cache-metrics", (CacheMetrics m) =>
     Results.Ok(new { m.Hits, m.Misses, m.HitRatio }));

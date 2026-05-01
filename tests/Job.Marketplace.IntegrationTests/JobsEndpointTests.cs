@@ -88,6 +88,37 @@ public class JobsEndpointTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task SearchJobs_returns_empty_list_when_no_jobs()
+    {
+        var response = await _client.GetAsync("/jobs?page=1&pageSize=20");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<SearchJobsResponse>();
+        body!.Total.Should().Be(0);
+        body.Items.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SearchJobs_returns_matching_jobs_by_description()
+    {
+        var customerId = await SeedCustomerAsync("Ann", "Lee");
+        await CreateJobViaApiAsync(customerId);
+
+        var response = await _client.GetAsync("/jobs?term=Test+job&page=1&pageSize=20");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<SearchJobsResponse>();
+        body!.Total.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task SearchJobs_returns_400_when_page_size_exceeds_100()
+    {
+        var response = await _client.GetAsync("/jobs?page=1&pageSize=200");
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
     public async Task DeleteJob_returns_409_when_job_is_awarded()
     {
         var customerId = await SeedCustomerAsync("Bob", "Smith");
@@ -150,4 +181,6 @@ public class JobsEndpointTests : IAsyncLifetime
     }
 
     private sealed record IdResponse(Guid Id);
+    private sealed record SearchJobsResponse(IReadOnlyList<JobItem> Items, int Total);
+    private sealed record JobItem(Guid Id, string Description);
 }

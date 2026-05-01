@@ -1,12 +1,12 @@
-namespace Job.Marketplace.API.Features.JobOffers.Delete;
+namespace Job.Marketplace.API.Features.JobOffers.Update;
 
-public interface IDeleteJobOfferQueries
+public interface IUpdateJobOfferQueries
 {
     Task<bool> OfferExistsAsync(Guid jobId, Guid offerId, CancellationToken ct);
-    Task DeleteAsync(Guid offerId, CancellationToken ct);
+    Task UpdateAsync(UpdateJobOfferCommand cmd, CancellationToken ct);
 }
 
-public sealed class DeleteJobOfferQueries(IDbConnectionFactory factory) : IDeleteJobOfferQueries
+public sealed class UpdateJobOfferQueries(IDbConnectionFactory factory) : IUpdateJobOfferQueries
 {
     public async Task<bool> OfferExistsAsync(Guid jobId, Guid offerId, CancellationToken ct)
     {
@@ -17,12 +17,12 @@ public sealed class DeleteJobOfferQueries(IDbConnectionFactory factory) : IDelet
                 new { offerId, jobId }, cancellationToken: ct));
     }
 
-    public async Task DeleteAsync(Guid offerId, CancellationToken ct)
+    public async Task UpdateAsync(UpdateJobOfferCommand cmd, CancellationToken ct)
     {
         await using var conn = await factory.CreateAsync(ct);
         await conn.ExecuteAsync(
             new CommandDefinition(
-                "DELETE FROM job_offers WHERE id = @offerId",
-                new { offerId }, cancellationToken: ct));
+                "UPDATE job_offers SET price = @Price WHERE id = @OfferId",
+                cmd, cancellationToken: ct));
     }
 }

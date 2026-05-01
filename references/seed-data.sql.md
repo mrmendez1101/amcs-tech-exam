@@ -27,7 +27,7 @@ db/
     seed-bulk.sql
 ```
 
-These are NOT migration scripts. Migrations live in `src/Marketplace.Api/Shared/Migrations/Scripts/` and run automatically on startup. Seed scripts run manually, on demand, against a running Postgres container.
+These are NOT migration scripts. Migrations live in `src/Job.Marketplace.Infrastructure/Migrations/Scripts/` and run automatically on startup. Seed scripts run manually, on demand, against a running Postgres container.
 
 ## Running the scripts
 

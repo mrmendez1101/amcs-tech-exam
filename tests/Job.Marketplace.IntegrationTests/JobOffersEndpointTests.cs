@@ -96,17 +96,45 @@ public class JobOffersEndpointTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task DeleteOffer_returns_409_when_job_is_awarded()
+    public async Task UpdateOffer_returns_200_with_id()
     {
         var customerId = await SeedCustomerAsync();
         var contractorId = await SeedContractorAsync();
         var jobId = await CreateJobAsync(customerId);
         var offerId = await CreateOfferAsync(jobId, contractorId);
-        await _client.PostAsync($"/jobs/{jobId}/offers/{offerId}/accept", null);
 
-        var response = await _client.DeleteAsync($"/jobs/{jobId}/offers/{offerId}");
+        var response = await _client.PutAsJsonAsync(
+            $"/jobs/{jobId}/offers/{offerId}", new { price = 950.00 });
 
-        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<IdResponse>();
+        body!.Id.Should().Be(offerId);
+    }
+
+    [Fact]
+    public async Task UpdateOffer_returns_404_when_offer_not_found()
+    {
+        var customerId = await SeedCustomerAsync();
+        var jobId = await CreateJobAsync(customerId);
+
+        var response = await _client.PutAsJsonAsync(
+            $"/jobs/{jobId}/offers/{Guid.NewGuid()}", new { price = 500.00 });
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task UpdateOffer_returns_400_when_price_is_zero()
+    {
+        var customerId = await SeedCustomerAsync();
+        var contractorId = await SeedContractorAsync();
+        var jobId = await CreateJobAsync(customerId);
+        var offerId = await CreateOfferAsync(jobId, contractorId);
+
+        var response = await _client.PutAsJsonAsync(
+            $"/jobs/{jobId}/offers/{offerId}", new { price = 0.00 });
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     private async Task<Guid> SeedCustomerAsync()
