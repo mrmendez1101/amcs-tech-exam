@@ -81,19 +81,26 @@ if (app.Environment.IsDevelopment())
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 
-SearchCustomersEndpoint.Map(app);
-GetCustomerByIdEndpoint.Map(app);
-SearchContractorsEndpoint.Map(app);
-SearchJobsEndpoint.Map(app);
-CreateJobEndpoint.Map(app);
-GetJobByIdEndpoint.Map(app);
-UpdateJobEndpoint.Map(app);
-DeleteJobEndpoint.Map(app);
-CreateJobOfferEndpoint.Map(app);
-GetJobOffersByJobIdEndpoint.Map(app);
-AcceptJobOfferEndpoint.Map(app);
-DeleteJobOfferEndpoint.Map(app);
-UpdateJobOfferEndpoint.Map(app);
+var customers = app.MapGroup("/customers").WithTags("Customers");
+SearchCustomersEndpoint.Map(customers);
+GetCustomerByIdEndpoint.Map(customers);
+
+var contractors = app.MapGroup("/contractors").WithTags("Contractors");
+SearchContractorsEndpoint.Map(contractors);
+
+var jobs = app.MapGroup("/jobs").WithTags("Jobs");
+SearchJobsEndpoint.Map(jobs);
+CreateJobEndpoint.Map(jobs);
+GetJobByIdEndpoint.Map(jobs);
+UpdateJobEndpoint.Map(jobs);
+DeleteJobEndpoint.Map(jobs);
+
+var jobOffers = app.MapGroup("/jobs/{jobId:guid}/offers").WithTags("Job Offers");
+CreateJobOfferEndpoint.Map(jobOffers);
+GetJobOffersByJobIdEndpoint.Map(jobOffers);
+AcceptJobOfferEndpoint.Map(jobOffers);
+DeleteJobOfferEndpoint.Map(jobOffers);
+UpdateJobOfferEndpoint.Map(jobOffers);
 
 app.MapGet("/internal/cache-metrics", (CacheMetrics m) =>
     Results.Ok(new { m.Hits, m.Misses, m.HitRatio }));

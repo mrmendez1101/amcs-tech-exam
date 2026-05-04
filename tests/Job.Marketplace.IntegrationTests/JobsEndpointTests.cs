@@ -137,8 +137,8 @@ public class JobsEndpointTests : IAsyncLifetime
         var factory = scope.ServiceProvider.GetRequiredService<IDbConnectionFactory>();
         await using var conn = await factory.CreateAsync();
         await conn.ExecuteAsync(
-            "INSERT INTO contractors (id, name) VALUES (@id, @name)",
-            new { id, name });
+            "INSERT INTO contractors (id, name, rating) VALUES (@id, @name, @rating)",
+            new { id, name, rating = 5.0m });
         return id;
     }
 

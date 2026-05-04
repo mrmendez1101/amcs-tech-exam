@@ -4,7 +4,7 @@ namespace Job.Marketplace.API.Features.JobOffers.Create;
 public sealed class CreateJobOfferEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app) =>
-        app.MapPost("/jobs/{jobId:guid}/offers", async (
+        app.MapPost("", async (
                 Guid jobId,
                 CreateJobOfferRequest req,
                 CreateJobOfferHandler handler,

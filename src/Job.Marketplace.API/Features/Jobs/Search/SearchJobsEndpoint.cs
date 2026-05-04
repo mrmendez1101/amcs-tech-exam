@@ -3,7 +3,7 @@ namespace Job.Marketplace.API.Features.Jobs.Search;
 public sealed class SearchJobsEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app) =>
-        app.MapGet("/jobs", async (
+        app.MapGet("", async (
                 string? term, int page, int pageSize,
                 SearchJobsHandler handler,
                 IValidator<SearchJobsRequest> validator,

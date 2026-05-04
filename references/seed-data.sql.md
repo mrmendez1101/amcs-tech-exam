@@ -107,7 +107,7 @@ WITH chosen_customers AS (
 numbered AS (
     SELECT id, ROW_NUMBER() OVER () AS rn FROM chosen_customers
 )
-INSERT INTO jobs (id, customer_id, start_date, due_date, budget, description, status)
+INSERT INTO jobs (id, customer_id, start_date, due_date, budget, description)
 SELECT
     gen_random_uuid(),
     n.id,
@@ -125,8 +125,7 @@ SELECT
         'Tile small bathroom floor',
         'Rewire garage lighting',
         'Pressure wash driveway'
-    ])[1 + (n.rn % 10)],
-    'Open'
+    ])[1 + (n.rn % 10)]
 FROM numbered n;
 
 -- Job offers -------------------------------------------------------------
@@ -171,10 +170,12 @@ COMMIT;
 
 Adjust the column names to match your actual schema. The script assumes:
 
-* `customers (id uuid, first_name text, last_name text)`
-* `contractors (id uuid, name text, rating numeric)`
-* `jobs (id uuid, customer_id uuid, start_date date, due_date date, budget numeric, description text)`
-* `job_offers (id uuid, job_id uuid, contractor_id uuid, price numeric, created_at timestamptz)`
+* `customers (id uuid, first_name varchar(100), last_name varchar(100), created_at timestamptz)`
+* `contractors (id uuid, name varchar(200), rating numeric(3,2), created_at timestamptz)`
+* `jobs (id uuid, customer_id uuid, start_date date, due_date date, budget numeric(18,2), description varchar(500), accepted_offer_id uuid, created_at timestamptz)`
+* `job_offers (id uuid, job_id uuid, contractor_id uuid, price numeric(18,2), created_at timestamptz)`
+
+Note: `status` was removed from `jobs` in migration `0006_remove_job_status.sql`. Do not include it in seed scripts.
 
 If your migrations name columns differently (e.g., `business_name` instead of `name`), update the script. Don't update the migrations to fit the seed.
 

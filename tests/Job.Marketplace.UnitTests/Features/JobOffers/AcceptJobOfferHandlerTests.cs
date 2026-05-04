@@ -6,48 +6,88 @@ namespace Job.Marketplace.UnitTests.Features.JobOffers;
 
 public class AcceptJobOfferHandlerTests
 {
-    private readonly IAcceptJobOfferQueries _queries = Substitute.For<IAcceptJobOfferQueries>();
+    private static AcceptJobOfferCommand MakeCmd(Guid jobId, Guid offerId, Guid customerId)
+        => new(jobId, offerId, customerId);
 
     [Fact]
-    public async Task Throws_when_job_not_found()
+    public async Task Throws_404_when_job_not_found()
     {
-        _queries.JobExistsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-                .Returns(false);
+        var queries = Substitute.For<IAcceptJobOfferQueries>();
+        queries.GetJobSnapshotAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+               .Returns((JobSnapshot?)null);
 
-        var sut = new AcceptJobOfferHandler(_queries);
+        var sut = new AcceptJobOfferHandler(queries);
+        Func<Task> act = () => sut.HandleAsync(
+            MakeCmd(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()), default);
 
-        Func<Task> act = () => sut.HandleAsync(new AcceptJobOfferCommand(Guid.NewGuid(), Guid.NewGuid()), default);
         await act.Should().ThrowAsync<KeyNotFoundException>();
     }
 
     [Fact]
-    public async Task Throws_when_offer_not_found_for_job()
+    public async Task Throws_404_when_customer_does_not_own_job()
     {
         var jobId = Guid.NewGuid();
-        _queries.JobExistsAsync(jobId, Arg.Any<CancellationToken>())
-                .Returns(true);
-        _queries.OfferBelongsToJobAsync(jobId, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-                .Returns(false);
+        var ownerCustomerId = Guid.NewGuid();
+        var queries = Substitute.For<IAcceptJobOfferQueries>();
+        queries.GetJobSnapshotAsync(jobId, Arg.Any<CancellationToken>())
+               .Returns(new JobSnapshot(jobId, ownerCustomerId, null));
 
-        var sut = new AcceptJobOfferHandler(_queries);
+        var sut = new AcceptJobOfferHandler(queries);
+        Func<Task> act = () => sut.HandleAsync(
+            MakeCmd(jobId, Guid.NewGuid(), Guid.NewGuid()), default);
 
-        Func<Task> act = () => sut.HandleAsync(new AcceptJobOfferCommand(jobId, Guid.NewGuid()), default);
         await act.Should().ThrowAsync<KeyNotFoundException>();
     }
 
     [Fact]
-    public async Task Calls_AcceptAsync_for_valid_job_and_offer()
+    public async Task Throws_409_when_job_already_accepted()
+    {
+        var jobId = Guid.NewGuid();
+        var customerId = Guid.NewGuid();
+        var queries = Substitute.For<IAcceptJobOfferQueries>();
+        queries.GetJobSnapshotAsync(jobId, Arg.Any<CancellationToken>())
+               .Returns(new JobSnapshot(jobId, customerId, Guid.NewGuid()));
+
+        var sut = new AcceptJobOfferHandler(queries);
+        Func<Task> act = () => sut.HandleAsync(
+            MakeCmd(jobId, Guid.NewGuid(), customerId), default);
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
+    }
+
+    [Fact]
+    public async Task Throws_404_when_offer_not_for_job()
+    {
+        var jobId = Guid.NewGuid();
+        var customerId = Guid.NewGuid();
+        var queries = Substitute.For<IAcceptJobOfferQueries>();
+        queries.GetJobSnapshotAsync(jobId, Arg.Any<CancellationToken>())
+               .Returns(new JobSnapshot(jobId, customerId, null));
+        queries.OfferBelongsToJobAsync(jobId, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+               .Returns(false);
+
+        var sut = new AcceptJobOfferHandler(queries);
+        Func<Task> act = () => sut.HandleAsync(
+            MakeCmd(jobId, Guid.NewGuid(), customerId), default);
+
+        await act.Should().ThrowAsync<KeyNotFoundException>();
+    }
+
+    [Fact]
+    public async Task Calls_AcceptAsync_when_customer_owns_open_job_and_offer_matches()
     {
         var jobId = Guid.NewGuid();
         var offerId = Guid.NewGuid();
-        _queries.JobExistsAsync(jobId, Arg.Any<CancellationToken>())
-                .Returns(true);
-        _queries.OfferBelongsToJobAsync(jobId, offerId, Arg.Any<CancellationToken>())
-                .Returns(true);
+        var customerId = Guid.NewGuid();
+        var queries = Substitute.For<IAcceptJobOfferQueries>();
+        queries.GetJobSnapshotAsync(jobId, Arg.Any<CancellationToken>())
+               .Returns(new JobSnapshot(jobId, customerId, null));
+        queries.OfferBelongsToJobAsync(jobId, offerId, Arg.Any<CancellationToken>())
+               .Returns(true);
 
-        var sut = new AcceptJobOfferHandler(_queries);
-        await sut.HandleAsync(new AcceptJobOfferCommand(jobId, offerId), default);
+        var sut = new AcceptJobOfferHandler(queries);
+        await sut.HandleAsync(MakeCmd(jobId, offerId, customerId), default);
 
-        await _queries.Received(1).AcceptAsync(jobId, offerId, Arg.Any<CancellationToken>());
+        await queries.Received(1).AcceptAsync(jobId, offerId, Arg.Any<CancellationToken>());
     }
 }

@@ -4,7 +4,7 @@ namespace Job.Marketplace.API.Features.Customers.Search;
 public sealed class SearchCustomersEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app) =>
-        app.MapGet("/customers", async (
+        app.MapGet("", async (
                 string? term,
                 int page,
                 int pageSize,

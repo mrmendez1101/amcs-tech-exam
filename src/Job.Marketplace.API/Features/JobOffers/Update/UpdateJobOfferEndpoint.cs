@@ -3,7 +3,7 @@ namespace Job.Marketplace.API.Features.JobOffers.Update;
 public sealed class UpdateJobOfferEndpoint : IEndpoint
 {
     public static void Map(IEndpointRouteBuilder app) =>
-        app.MapPut("/jobs/{jobId:guid}/offers/{offerId:guid}", async (
+        app.MapPut("/{offerId:guid}", async (
                 Guid jobId,
                 Guid offerId,
                 UpdateJobOfferRequest req,

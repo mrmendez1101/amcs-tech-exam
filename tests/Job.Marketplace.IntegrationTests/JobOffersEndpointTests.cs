@@ -137,6 +137,66 @@ public class JobOffersEndpointTests : IAsyncLifetime
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
+    [Fact]
+    public async Task AcceptOffer_returns_200_when_customer_owns_job_and_offer_exists()
+    {
+        var customerId = await SeedCustomerAsync();
+        var contractorId = await SeedContractorAsync();
+        var jobId = await CreateJobAsync(customerId);
+        var offerId = await CreateOfferAsync(jobId, contractorId);
+
+        var response = await _client.PostAsJsonAsync(
+            $"/jobs/{jobId}/offers/{offerId}/accept", new { customerId });
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task AcceptOffer_returns_404_when_customer_does_not_own_job()
+    {
+        var customerId = await SeedCustomerAsync();
+        var contractorId = await SeedContractorAsync();
+        var jobId = await CreateJobAsync(customerId);
+        var offerId = await CreateOfferAsync(jobId, contractorId);
+        var otherCustomerId = await SeedCustomerAsync();
+
+        var response = await _client.PostAsJsonAsync(
+            $"/jobs/{jobId}/offers/{offerId}/accept", new { customerId = otherCustomerId });
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task AcceptOffer_returns_409_when_job_already_accepted()
+    {
+        var customerId = await SeedCustomerAsync();
+        var contractorId = await SeedContractorAsync();
+        var jobId = await CreateJobAsync(customerId);
+        var offerId = await CreateOfferAsync(jobId, contractorId);
+
+        await _client.PostAsJsonAsync(
+            $"/jobs/{jobId}/offers/{offerId}/accept", new { customerId });
+
+        var response = await _client.PostAsJsonAsync(
+            $"/jobs/{jobId}/offers/{offerId}/accept", new { customerId });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task AcceptOffer_returns_400_when_customer_id_is_empty()
+    {
+        var customerId = await SeedCustomerAsync();
+        var contractorId = await SeedContractorAsync();
+        var jobId = await CreateJobAsync(customerId);
+        var offerId = await CreateOfferAsync(jobId, contractorId);
+
+        var response = await _client.PostAsJsonAsync(
+            $"/jobs/{jobId}/offers/{offerId}/accept", new { customerId = Guid.Empty });
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
     private async Task<Guid> SeedCustomerAsync()
     {
         var id = Guid.NewGuid();
@@ -156,8 +216,8 @@ public class JobOffersEndpointTests : IAsyncLifetime
         var factory = scope.ServiceProvider.GetRequiredService<IDbConnectionFactory>();
         await using var conn = await factory.CreateAsync();
         await conn.ExecuteAsync(
-            "INSERT INTO contractors (id, name) VALUES (@id, @name)",
-            new { id, name = "Test Contractor" });
+            "INSERT INTO contractors (id, name, rating) VALUES (@id, @name, @rating)",
+            new { id, name = "Test Contractor", rating = 5.0m });
         return id;
     }
 
